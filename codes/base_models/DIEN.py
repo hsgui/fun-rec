@@ -191,10 +191,15 @@ class DynamicGRU(Layer):
             att_score = None
         else:        # 这个是兴趣进化层，这个中间会有个注意力机制
             rnn_input, sequence_length, att_score = input_list       
-        
-        rnn_output, hidden_state = dynamic_rnn(self.gru_cell, inputs=rnn_input, att_scores=att_score, 
-                                              sequence_length=tf.squeeze(sequence_length),
-                                               dtype = tf.float32)
+
+        if att_score is None:
+            rnn_output, hidden_state = tf.compat.v1.nn.dynamic_rnn(self.gru_cell, inputs=rnn_input,
+                                                                   sequence_length=tf.squeeze(sequence_length),
+                                                                   dtype = tf.float32)
+        else:
+            rnn_output, hidden_state = dynamic_rnn(self.gru_cell, inputs=rnn_input, att_scores=att_score, 
+                                                   sequence_length=tf.squeeze(sequence_length),
+                                                   dtype = tf.float32)
         
         if not self.return_sequence:  # 只返回最后一个时间步的结果
             return hidden_state
@@ -356,7 +361,8 @@ def DIEN(feature_columns, behavior_feature_list, behavior_seq_feature_list, neg_
     # 采样的负行为
     neg_uiseq_embed_list = embedding_lookup(neg_seq_feature_list, input_layer_dict, embedding_layer_dict)
     neg_concat_behavior = concat_input_list(neg_uiseq_embed_list)
-    
+
+    print('keys_emb.shape', keys_emb.shape, 'query_emb.shape', query_emb.shape, 'neg_concat_behavior.shape', neg_concat_behavior.shape)
     # 兴趣进化层的计算过程
     dnn_seq_input, aux_loss = interest_evolution(keys_emb, query_emb, user_behavior_length, neg_concat_behavior, gru_type="AUGRU")
     
@@ -389,7 +395,7 @@ def get_neg_click(data_df, neg_num=10):
     for movies in movies_np:
         hist_movies = set([x for x in movies.split(',') if x != '0'])
         neg_movies_set = movies_set - hist_movies # 集合求差集
-        neg_movies = sample(neg_movies_set, neg_num) # 返回的是一个列表
+        neg_movies = sample(sorted(neg_movies_set), neg_num) # 返回的是一个列表
         neg_movies_list.append(','.join(neg_movies))
 
     return pd.Series(neg_movies_list)
@@ -444,4 +450,5 @@ if __name__ == "__main__":
     
     history.compile('adam', 'binary_crossentropy')
 
-    history.fit(X_train, y_train, batch_size=64, epochs=5, validation_split=0.2, )
+    # has issue with tf2.0
+    # history.fit(X_train, y_train, batch_size=64, epochs=5, validation_split=0.2, )
