@@ -1,3 +1,4 @@
+import tensorflow as tf
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import init_ops
 from tensorflow.python.ops import math_ops
@@ -54,10 +55,10 @@ class _Linear_(object):
 
         self._build_bias = build_bias
 
-        if args is None or (nest.is_sequence(args) and not args):
+        if args is None or (tf.nest.is_nested(args) and not args):
             raise ValueError("`args` must be specified")
 
-        if not nest.is_sequence(args):
+        if not tf.nest.is_nested(args):
 
             args = [args]
 

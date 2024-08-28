@@ -1,0 +1,12 @@
+channels:
+- rapidsai
+- rapidsai-nightly
+- dask/label/dev
+- conda-forge
+- nvidia
+dependencies:
+- tensorflow==2.15.0
+- pandas
+- tqdm
+- scikit-learn
+name: all_cuda-arch-x86_64

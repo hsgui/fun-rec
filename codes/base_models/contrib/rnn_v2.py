@@ -54,6 +54,7 @@ from __future__ import print_function
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import ops
 from tensorflow.python.framework import tensor_shape
+from tensorflow.python.ops import array_ops_stack
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
@@ -1092,9 +1093,9 @@ def dynamic_rnn(cell, inputs, att_scores=None, sequence_length=None, initial_sta
 
             x_shape = array_ops.shape(x)
 
-            packed_shape = array_ops.stack(shape)
+            packed_shape = array_ops_stack.stack(shape)
 
-            return control_flow_ops.Assert(
+            return tf.Assert(
 
                 math_ops.reduce_all(math_ops.equal(x_shape, packed_shape)),
 
@@ -1278,7 +1279,7 @@ def _dynamic_rnn_loop(cell,
 
         return array_ops.zeros(
 
-            array_ops.stack(size), _infer_state_dtype(dtype, state))
+            array_ops_stack.stack(size), _infer_state_dtype(dtype, state))
 
     flat_zero_output = tuple(_create_zero_arrays(output)
 
@@ -1406,7 +1407,7 @@ def _dynamic_rnn_loop(cell,
 
     if att_scores is not None:
 
-        _, output_final_ta, final_state, _ = control_flow_ops.while_loop(
+        _, output_final_ta, final_state, _ = tf.while_loop(
 
             cond=lambda time, *_: time < time_steps,
 
@@ -1420,7 +1421,7 @@ def _dynamic_rnn_loop(cell,
 
     else:
 
-        _, output_final_ta, final_state = control_flow_ops.while_loop(
+        _, output_final_ta, final_state = tf.while_loop(
 
             cond=lambda time, *_: time < time_steps,
 
